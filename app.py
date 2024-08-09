@@ -87,7 +87,8 @@ if st.session_state.affirmation:
     if st.button("Listen to Affirmation"):
         with st.spinner("Generating audio... Turn your speakers up!"):
             audio = text_to_speech(st.session_state.affirmation)
-            stream(audio)
+            # stream(audio)
+            play(audio)
     
     if st.button("Start Over"):
         st.session_state.stage = 0
