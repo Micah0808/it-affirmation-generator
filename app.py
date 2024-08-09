@@ -4,7 +4,7 @@ import openai
 import os
 from dotenv import load_dotenv
 from elevenlabs.client import ElevenLabs
-from elevenlabs import play, stream
+from io import BytesIO
 
 # Load environment variables
 load_dotenv()
@@ -27,23 +27,29 @@ def generate_affirmation(responses):
     client = OpenAI(api_key=gpt_key)
 
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": "You are a helpful assistant that generates personalized affirmations."},
             {"role": "user", "content": prompt}
         ],
-        # temperature=0,
         max_tokens=4096,
     )
     return response.choices[0].message.content
 
 def text_to_speech(text):
-    audio = client.generate(
+    audio_generator = client.generate(
         text=text,
-        voice="KmnvDXRA0HU55Q0aqkPG", # Nicole
+        voice="KmnvDXRA0HU55Q0aqkPG",  # Nicole
         model="eleven_multilingual_v2"
     )
-    return audio
+    
+    # Convert generator to bytes
+    audio_bytes = BytesIO()
+    for chunk in audio_generator:
+        audio_bytes.write(chunk)
+    audio_bytes.seek(0)
+    
+    return audio_bytes
 
 st.title("Personal Affirmation Generator")
 
@@ -87,7 +93,7 @@ if st.session_state.affirmation:
     if st.button("Listen to Affirmation"):
         with st.spinner("Generating audio... Turn your speakers up!"):
             audio = text_to_speech(st.session_state.affirmation)
-            stream(audio)
+            st.audio(audio, format='audio/mp3')  # Assuming the generated audio is in MP3 format
     
     if st.button("Start Over"):
         st.session_state.stage = 0
